@@ -121,13 +121,32 @@ pub async fn find_ryakusyou(
     .unwrap();
 
   while let Some((pos, text)) = ryakusyo_pos_stream.next().await {
-    println!("{text} pos: {pos}");
     if let Some((target_start_token_index, _)) = japanese_dependency_lst
       .iter()
       .find(|(_, d)| d.start < *pos && pos - 1 <= d.end)
     {
+      // 行の先頭から読んでいき、括弧書きの後ろに係り受けをするトークンが出現しなくなる箇所の先端を探す
+      let mut start = 0;
+      let mut lst = japanese_dependency_lst.iter().collect::<Vec<_>>();
+      lst.sort_by_key(|(i, _)| **i);
+      for (i, d) in lst.iter() {
+        if target_start_token_index == *i {
+          break;
+        }
+        if let Some(hs) = d.head_start {
+          if *target_start_token_index < hs {
+            start = d.end - 1
+          }
+        }
+      }
+      let mut t1 = String::new();
+      for (i, c) in parse_ryakusyou_info.remove_paren_text.chars().enumerate() {
+        if start <= i && i < *pos {
+          t1.push(c)
+        }
+      }
+      // 括弧書きがある直前のトークンに対して係り受けをするトークンの先頭を探す
       let mut index_lst = vec![*target_start_token_index];
-      println!("{text} target_start_token_index: {target_start_token_index}");
       let mut tmp_index_lst = Vec::new();
       loop {
         for i in index_lst.clone().iter() {
@@ -151,18 +170,25 @@ pub async fn find_ryakusyou(
         }
         tmp_index_lst = Vec::new();
       }
-      println!("{text} index_lst: {index_lst:?}");
       index_lst.sort();
       if let Some(head) = index_lst.first() {
         if let Some(head_token) = japanese_dependency_lst.get(head) {
           let start = head_token.start;
-          println!("{text} start: {start}, pos: {pos}");
-          let mut t = String::new();
+          let mut t2 = String::new();
           for (i, c) in parse_ryakusyou_info.remove_paren_text.chars().enumerate() {
             if start <= i && i < *pos {
-              t.push(c)
+              t2.push(c)
             }
           }
+          println!("{text} t1:{}, t2:{}", &t1, &t2);
+          // t1は「この中に求める文は含まれる」でt2は「少なくともこの部分は求める分に含まれる」
+          // t1 ⊃ t2 となっているはず
+          // t1の中で区切りが無い場合はt1を採用
+          let t = if !t1.contains('。') && !t1.contains('、') {
+            t1
+          } else {
+            t2
+          };
           if let Some(ryakusyou_or_seishiki) = re.captures(text) {
             if let Some(ryakusyou) = ryakusyou_or_seishiki.name("ryakusyou") {
               let ryakusyou = ryakusyou.as_str().to_string();
