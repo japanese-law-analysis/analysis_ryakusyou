@@ -28,6 +28,7 @@
 //! - `--index-file`：[japanese-law-analysis/listup_law](https://github.com/japanese-law-analysis/listup_law)で生成した法令のリストが書かれているJSONファイルへのpath
 //! - `--article-info-file`：[japanese-law-analysis/search_article_with_word](https://github.com/japanese-law-analysis/search_article_with_word)で生成した「という。」・「をいう。」が含まれる条文のリストが書かれたJSONファイルへのpath
 //! - `--tmp-directory`（オプション引数）：一時ファイルの生成先フォルダへのpath（デフォルトは`.`）
+//! - `--do-not-use-cache`（オプション引数）：一時ファイルのキャッシュを使わないで全て生成するような挙動にする（デフォルトはキャッシュを使用）
 //!
 //! ---
 //! [MIT License](https://github.com/japanese-law-analysis/analysis_ryakusyou/blob/master/LICENSE)
@@ -76,7 +77,7 @@ pub struct TextInfo {
 }
 
 /// 一時ファイル
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ParseRyakusyouInfo {
   pub raw_text: String,
   pub remove_paren_text: String,
