@@ -119,8 +119,7 @@ async fn main() -> Result<()> {
   let mut input_tmp_file = File::create(&input_tmp_path).await?;
   input_tmp_file.write_all(input_tmp_str.as_bytes()).await?;
   input_tmp_file.flush().await?;
-  let japanese_dependency_tmp_file =
-    format!("{tmp_directory}/analysis_ryakusyou_tmp_output.json");
+  let japanese_dependency_tmp_file = format!("{tmp_directory}/analysis_ryakusyou_tmp_output.json");
   Command::new("python")
     .arg(&args.py_path)
     .arg("--input")
@@ -148,14 +147,16 @@ async fn main() -> Result<()> {
     let parse_ryakusyou_info = law_text_info.get(&key).unwrap();
     let ryakusyou_info =
       analysis_ryakusyou::find_ryakusyou(&japanese_dependency_lst, parse_ryakusyou_info).await;
-    let ryakusyou_info_str = serde_json::to_string(&ryakusyou_info)?;
-    if is_head {
-      output.write_all(b"\n").await?;
-      is_head = false;
-    } else {
-      output.write_all(b",\n").await?;
+    if !ryakusyou_info.ryakusyou_lst.is_empty() {
+      let ryakusyou_info_str = serde_json::to_string(&ryakusyou_info)?;
+      if is_head {
+        output.write_all(b"\n").await?;
+        is_head = false;
+      } else {
+        output.write_all(b",\n").await?;
+      }
+      output.write_all(ryakusyou_info_str.as_bytes()).await?;
     }
-    output.write_all(ryakusyou_info_str.as_bytes()).await?;
   }
 
   output.write_all(b"\n]").await?;

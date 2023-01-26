@@ -52,7 +52,7 @@ pub struct ParseRyakusyouInfo {
 /// 文から括弧書きを取り除いたテキストと、その括弧書きがどの位置に挿入されていたのかのリスト
 /// 括弧書きの中に括弧書き
 pub fn remove_paren(text: &str) -> Vec<TextInfo> {
-  let re = Regex::new("(.+「.+」という。.*)|(.+をいう。.*)").unwrap();
+  let re = Regex::new("([^「（]+「.+」という。.*)|(.+をいう。.*)").unwrap();
   let chars = text.chars();
   let mut counter = 0;
   let mut paren_depth = 0;
@@ -117,8 +117,8 @@ pub async fn find_ryakusyou(
 ) -> RyakusyouInfo {
   let mut v = Vec::new();
   let mut ryakusyo_pos_stream = tokio_stream::iter(&parse_ryakusyou_info.paren);
-  let re =
-    Regex::new("([^「]+「(?P<ryakusyou>[^」]+)」という。.*)|((?P<seishiki>.+)をいう。.*)").unwrap();
+  let re = Regex::new("([^「（]+「(?P<ryakusyou>[^」]+)」という。.*)|((?P<seishiki>.+)をいう。.*)")
+    .unwrap();
 
   while let Some((pos, text)) = ryakusyo_pos_stream.next().await {
     println!("{text} pos: {pos}");
@@ -166,18 +166,22 @@ pub async fn find_ryakusyou(
           if let Some(ryakusyou_or_seishiki) = re.captures(text) {
             if let Some(ryakusyou) = ryakusyou_or_seishiki.name("ryakusyou") {
               let ryakusyou = ryakusyou.as_str().to_string();
-              let ryakusyou_v = Ryakusyou {
-                ryakusyou,
-                seishiki: t,
-              };
-              v.push(ryakusyou_v)
+              if check_paren(&ryakusyou) {
+                let ryakusyou_v = Ryakusyou {
+                  ryakusyou,
+                  seishiki: t,
+                };
+                v.push(ryakusyou_v)
+              }
             } else if let Some(seishiki) = ryakusyou_or_seishiki.name("seishiki") {
               let seishiki = seishiki.as_str().to_string();
-              let ryakusyou_v = Ryakusyou {
-                ryakusyou: t,
-                seishiki,
-              };
-              v.push(ryakusyou_v)
+              if check_paren(&seishiki) {
+                let ryakusyou_v = Ryakusyou {
+                  ryakusyou: t,
+                  seishiki,
+                };
+                v.push(ryakusyou_v)
+              }
             }
           }
         }
@@ -190,6 +194,19 @@ pub async fn find_ryakusyou(
     chapter: parse_ryakusyou_info.chapter.clone(),
     ryakusyou_lst: v,
   }
+}
+
+/// 括弧の対応が取れているかどうかを確認する
+fn check_paren(s: &str) -> bool {
+  let mut depth: i64 = 0;
+  for c in s.chars() {
+    if c == '（' {
+      depth += 1
+    } else if c == '）' {
+      depth -= 1
+    }
+  }
+  depth == 0
 }
 
 #[test]
