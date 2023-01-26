@@ -27,7 +27,7 @@
 //! - `--work`：[e-gov法令検索](https://elaws.e-gov.go.jp/)からダウンロードした全ファイルが入っているフォルダへのpath
 //! - `--index-file`：[japanese-law-analysis/listup_law](https://github.com/japanese-law-analysis/listup_law)で生成した法令のリストが書かれているJSONファイルへのpath
 //! - `--article-info-file`：[japanese-law-analysis/search_article_with_word](https://github.com/japanese-law-analysis/search_article_with_word)で生成した「という。」・「をいう。」が含まれる条文のリストが書かれたJSONファイルへのpath
-//! - `--tmp-directory`：一時ファイルの生成先フォルダへのpath
+//! - `--tmp-directory`（オプション引数）：一時ファイルの生成先フォルダへのpath（デフォルトは`.`）
 //!
 //! ---
 //! [MIT License](https://github.com/japanese-law-analysis/analysis_ryakusyou/blob/master/LICENSE)
