@@ -15,7 +15,7 @@
 //! # Use
 //!
 //! ```sh
-//!  analysis_ryakusyou --output output.json --py-path "path/to/parse_japanese_dependency.py" --work "path/to/law_xml_directory" --index "path/to/law_list.json" --article-info-file "path/to/words_law_info.json"
+//!  analysis_ryakusyou --output output.json --py-path "path/to/parse_japanese_dependency.py" --work "path/to/law_xml_directory" --index-file "path/to/law_list.json" --article-info-file "path/to/words_law_info.json"
 //! ```
 //!
 //! で起動します。また、オプション引数として`--tmp-directory path/to/tmp_directory`が使えます。
