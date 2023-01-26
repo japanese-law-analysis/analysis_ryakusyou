@@ -176,7 +176,9 @@ async fn main() -> Result<()> {
   output.write_all(b"[").await?;
   let mut is_head = true;
   while let Some((key, japanese_dependency_lst)) = japanese_dependency_stream.next().await {
-    let parse_ryakusyou_info = law_text_info.get(&key).unwrap();
+    let parse_ryakusyou_info = law_text_info
+      .get(&key)
+      .with_context(|| format!("{key} not found"))?;
     let ryakusyou_info =
       analysis_ryakusyou::find_ryakusyou(&japanese_dependency_lst, parse_ryakusyou_info).await;
     if !ryakusyou_info.ryakusyou_lst.is_empty() {
