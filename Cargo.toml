@@ -1,0 +1,20 @@
+[package]
+name = "analysis_ryakusyou"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.68"
+clap = { version = "4.1.4", features = ["derive"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"
+tokio = { version = "1.24.2", features = ["full"] }
+tokio-stream = "0.1.11"
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.16",  features = ["registry"] }
+listup_law = { git="https://github.com/japanese-law-analysis/listup_law.git", rev="2872f2b"}
+jplaw_text = { git="https://github.com/japanese-law-analysis/jplaw_text.git", rev="f98b48e" }
+search_article_with_word = { git="https://github.com/japanese-law-analysis/search_article_with_word.git", rev="71005a7"}
+regex = "1.7.1"
