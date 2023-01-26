@@ -67,8 +67,8 @@ async fn main() -> Result<()> {
     true
   } else {
     // キャッシュを使う
-    // 一時ファイルが一つでも存在しなければ実行
-    !Path::new(&info_tmp_path).exists() || !Path::new(&japanese_dependency_tmp_file).exists()
+    // 一時ファイルが存在しなければ実行
+    !Path::new(&info_tmp_path).exists() || !Path::new(&input_tmp_path).exists()
   };
 
   let mut law_text_info = HashMap::new();
@@ -140,17 +140,6 @@ async fn main() -> Result<()> {
     let mut input_tmp_file = File::create(&input_tmp_path).await?;
     input_tmp_file.write_all(input_tmp_str.as_bytes()).await?;
     input_tmp_file.flush().await?;
-
-    info!("[START] run parse_japanese_dependency.py");
-    Command::new("python")
-      .arg(&args.py_path)
-      .arg("--input")
-      .arg(input_tmp_path)
-      .arg("--output")
-      .arg(&japanese_dependency_tmp_file)
-      .output()
-      .await?;
-    info!("[END] run parse_japanese_dependency.py");
   } else {
     // 既に生成されているファイルの中身を抽出する
     info!("[START] read info tmp file: {}", &info_tmp_path);
@@ -160,6 +149,33 @@ async fn main() -> Result<()> {
     let info_tmp_json_str = String::from_utf8(info_tmp_buf)?;
     law_text_info = serde_json::from_str(&info_tmp_json_str)?;
     info!("[END] read info tmp file: {}", &info_tmp_path);
+  }
+
+  let is_run_py = if args.do_not_use_cache {
+    // キャッシュを使わない
+    // 常に実行
+    true
+  } else {
+    // キャッシュを使う
+    // 一時ファイルが存在しなければ実行
+    !Path::new(&japanese_dependency_tmp_file).exists()
+  };
+
+  if is_run_py {
+    info!("[START] run parse_japanese_dependency.py");
+    let output = Command::new("python")
+      .arg(&args.py_path)
+      .arg("--input")
+      .arg(input_tmp_path)
+      .arg("--output")
+      .arg(&japanese_dependency_tmp_file)
+      .output()
+      .await?;
+    let stderr_str = String::from_utf8_lossy(&output.stderr);
+    if !stderr_str.is_empty() {
+      error!("{stderr_str}");
+    }
+    info!("[END] run parse_japanese_dependency.py");
   }
 
   let mut japanese_dependency_file = File::open(&japanese_dependency_tmp_file).await?;
