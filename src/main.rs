@@ -178,6 +178,7 @@ async fn main() -> Result<()> {
     info!("[END] run parse_japanese_dependency.py");
   }
 
+  info!("[START] analysis");
   let mut japanese_dependency_file = File::open(&japanese_dependency_tmp_file).await?;
   let mut japanese_dependency_buf = Vec::new();
   japanese_dependency_file
@@ -208,8 +209,8 @@ async fn main() -> Result<()> {
       output.write_all(ryakusyou_info_str.as_bytes()).await?;
     }
   }
-
   output.write_all(b"\n]").await?;
+  info!("[END] analysis");
 
   Ok(())
 }
